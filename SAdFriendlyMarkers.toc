@@ -1,0 +1,12 @@
+## Interface: 120000
+## Title: SAdFriendlyMarkers
+## Author: Your Name
+## Version: 1.0
+## SavedVariables: SAdFriendlyMarkers_Settings_Global
+## SavedVariablesPerCharacter: SAdFriendlyMarkers_Settings_Char
+## AddonCompartmentFunc: SAdFriendlyMarkers_Compartment_Func
+## IconTexture: Interface\Icons\boss_odunrunes_green
+
+Libs\LibSAdCore\LibSAdCore.lua
+
+SAdFriendlyMarkers.lua
