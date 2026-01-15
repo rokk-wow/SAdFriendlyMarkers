@@ -217,7 +217,7 @@ end
 --[[============================================================================
     SAdCore - Simple Addon Core
 ==============================================================================]]
-local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 1
+local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 2
 local SAdCore, oldminor = LibStub:NewLibrary(SADCORE_MAJOR, SADCORE_MINOR)
 if not SAdCore then
     return
@@ -1239,16 +1239,17 @@ do -- Controls
         colorPicker.ColorSwatch.Background:SetColorTexture(1, 1, 1, 1)
         colorPicker.ColorSwatch.Background:SetAllPoints()
 
-        colorPicker.ColorSwatch.Color = colorPicker.ColorSwatch:CreateTexture(nil, "BORDER")
-        local r, g, b, a = self:hexToRGB(currentValue or defaultValue)
+        colorPicker.ColorSwatch.Color = colorPicker.ColorSwatch:CreateTexture(nil, "ARTWORK")
+        local hexValue = currentValue or defaultValue
+        local r, g, b, a = self:hexToRGB(hexValue)
         colorPicker.ColorSwatch.Color:SetColorTexture(r, g, b, a)
         colorPicker.ColorSwatch.Color:SetPoint("TOPLEFT", 2, -2)
         colorPicker.ColorSwatch.Color:SetPoint("BOTTOMRIGHT", -2, 2)
 
-        colorPicker.ColorSwatch.Border = colorPicker.ColorSwatch:CreateTexture(nil, "OVERLAY")
+        colorPicker.ColorSwatch.Border = colorPicker.ColorSwatch:CreateTexture(nil, "BORDER")
         colorPicker.ColorSwatch.Border:SetColorTexture(0, 0, 0, 1)
         colorPicker.ColorSwatch.Border:SetAllPoints()
-        colorPicker.ColorSwatch.Border:SetDrawLayer("OVERLAY", 0)
+        colorPicker.ColorSwatch.Border:SetDrawLayer("BORDER", 0)
 
         local function updateColor(hexColor)
             local r, g, b, a = self:hexToRGB(hexColor)
@@ -1302,7 +1303,9 @@ do -- Controls
                 if value == nil then
                     value = defaultValue
                 end
+                print("[ColorPicker REFRESH] panelKey=" .. tostring(panelKey) .. ", name=" .. tostring(name) .. ", hex=" .. tostring(value))
                 local r, g, b, a = self:hexToRGB(value)
+                print("[ColorPicker REFRESH] RGBA: r=" .. tostring(r) .. ", g=" .. tostring(g) .. ", b=" .. tostring(b) .. ", a=" .. tostring(a))
                 colorPicker.ColorSwatch.Color:SetColorTexture(r, g, b, a)
             end
         end

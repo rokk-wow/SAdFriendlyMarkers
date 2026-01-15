@@ -77,7 +77,7 @@ function addon:LoadConfig()
             {
                 type = "slider",
                 name = "markerSize",
-                default = 100,
+                default = 150,
                 min = 1,
                 max = 300,
                 step = 1,
@@ -86,7 +86,7 @@ function addon:LoadConfig()
             {
                 type = "slider",
                 name = "markerVerticalOffset",
-                default = 0,
+                default = -20,
                 min = -100,
                 max = 100,
                 step = 1,
