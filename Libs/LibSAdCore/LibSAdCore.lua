@@ -695,12 +695,43 @@ do -- Settings Panels
         return returnValue
     end
 
+    function addon:InitializeDefaultSettings()
+        callHook(self, "BeforeInitializeDefaultSettings")
+
+        if not self.config.settings then
+            callHook(self, "AfterInitializeDefaultSettings", false)
+            return false
+        end
+
+        for panelKey, panelConfig in pairs(self.config.settings) do
+            self.settings[panelKey] = self.settings[panelKey] or {}
+            
+            if panelConfig.controls then
+                for _, controlConfig in ipairs(panelConfig.controls) do
+                    local controlName = controlConfig.name
+                    local controlDefault = controlConfig.default
+                    
+                    if controlName and controlDefault ~= nil and self.settings[panelKey][controlName] == nil then
+                        self.settings[panelKey][controlName] = controlDefault
+                    end
+                end
+            end
+        end
+
+        local returnValue = true
+        callHook(self, "AfterInitializeDefaultSettings", returnValue)
+        return returnValue
+    end
+
     function addon:InitializeSettingsPanel()
         callHook(self, "BeforeInitializeSettingsPanel")
 
         if self.ConfigureMainSettings then
             self:ConfigureMainSettings()
         end
+
+        -- Pre-initialize all settings with their default values
+        self:InitializeDefaultSettings()
 
         self.settingsPanels = {}
         self.mainSettingsPanel = self:BuildMainSettingsPanel()
