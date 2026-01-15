@@ -42,10 +42,25 @@ function addon:LoadConfig()
 
     local markerOptions = {}
     table.insert(markerOptions, { value = "classIcon", label = "markerStyleClassIcon" })
-    for markerKey, _ in pairs(self.vars.markers) do
+    
+    local markerData = {}
+    for markerKey in pairs(self.vars.markers) do
+        local labelKey = "markerStyle" .. markerKey:sub(1,1):upper() .. markerKey:sub(2)
+        local localizedLabel = self:L(labelKey)
+        if localizedLabel:match("^%[.*%]$") then
+            localizedLabel = markerKey
+        end
+        table.insert(markerData, { key = markerKey, labelKey = labelKey, label = localizedLabel })
+    end
+    
+    table.sort(markerData, function(a, b)
+        return a.label < b.label
+    end)
+    
+    for _, data in ipairs(markerData) do
         table.insert(markerOptions, {
-            value = markerKey,
-            label = "markerStyle" .. markerKey:sub(1,1):upper() .. markerKey:sub(2),
+            value = data.key,
+            label = data.labelKey,
             onValueChange = function() addon:RefreshAllNameplates() end
         })
     end
