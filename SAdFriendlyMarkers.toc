@@ -10,3 +10,4 @@
 Libs\LibSAdCore\LibSAdCore.lua
 
 SAdFriendlyMarkers.lua
+Localization.lua
