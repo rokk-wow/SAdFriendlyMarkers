@@ -144,7 +144,6 @@ function addon:LoadConfig()
     
     -- Main Settings Panel
     self.config.settings.main = {
-        title = "mainTitle",
         controls = {
             -- Header
             {
@@ -274,7 +273,6 @@ addon.locale = {}
 
 addon.locale.enEN = {
     -- Main panel
-    mainTitle = "My Addon Settings",
     mainHeader = "Main Settings",
     mainCheckbox = "Enable Main Feature",
     mainCheckboxTooltip = "Enable or disable the main feature",
@@ -453,6 +451,7 @@ These are the most commonly used functions available on the `self` object within
 - **`self:debug(text)`** - Only displays when "Enable Debugging" is enabled in settings
 - **`self:info(text)`** - Always displays (informational messages)
 - **`self:error(text)`** - Always displays (error messages)
+- **`self:dump(value, name)`** - Dumps a variable using DevTools_Dump for inspection (optional name parameter)
 
 ### Localization
 - **`self:L(key)`** - Returns the localized string for the given key based on client language
@@ -469,7 +468,37 @@ These are the most commonly used functions available on the `self` object within
 - **`self:OpenSettings()`** - Opens the addon settings panel
 
 ### Utilities
-- **`self:ShowDialog(title, message, onAccept, onCancel)`** - Display a confirmation dialog
+- **`self:ShowDialog(dialogOptions)`** - Display a custom dialog with optional controls
+  - `dialogOptions` - A table containing:
+    - `title` - The dialog title (localization key)
+    - `controls` - Array of control configurations (optional)
+    - `width` - Custom dialog width in pixels (optional, defaults to 500)
+    - `height` - Custom dialog height in pixels (optional, auto-calculated based on content)
+    - `onClose` - Callback function when dialog is closed (optional)
+
+**Example:**
+```lua
+-- Simple dialog with just a title and close button
+self:ShowDialog({
+    title = "myDialogTitle"
+})
+
+-- Dialog with controls
+self:ShowDialog({
+    title = "myDialogTitle",
+    controls = {
+        {
+            type = "inputBox",
+            name = "userInput",
+            default = "Enter text here",
+            highlightText = true
+        }
+    },
+    onClose = function()
+        self:info("Dialog closed")
+    end
+})
+```
 
 
 ## Hooks

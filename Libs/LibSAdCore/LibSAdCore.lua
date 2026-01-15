@@ -387,12 +387,12 @@ do -- Initialization
         self:RegisterEvent("PVP_MATCH_INACTIVE", handleZoneChangeCallback)
         self:RegisterEvent("PLAYER_ROLES_ASSIGNED", handleZoneChangeCallback)
 
+        self.author = self.author or "SAdCore Framework"
+        self:InitializeSavedVariables(savedVarsGlobal, savedVarsPerChar)
+
         if self.LoadConfig then
             self:LoadConfig()
         end
-
-        self.author = self.author or "SAdCore Framework"
-        self:InitializeSavedVariables(savedVarsGlobal, savedVarsPerChar)
 
         self.LibSerialize = LibStub("LibSerialize")
         self.LibCompress = LibStub("LibCompress")
@@ -1764,6 +1764,16 @@ do -- Utility Functions
 
         local returnValue = true
         callHook(self, "AfterDebug", returnValue)
+        return returnValue
+    end
+
+    function addon:dump(value, name)
+        value, name = callHook(self, "BeforeDump", value, name)
+        
+        DevTools_Dump(value, name or self.addonName)
+        
+        local returnValue = true
+        callHook(self, "AfterDump", returnValue)
         return returnValue
     end
 
