@@ -79,7 +79,7 @@ function addon:LoadConfig()
                 name = "markerSize",
                 default = 150,
                 min = 1,
-                max = 300,
+                max = 500,
                 step = 1,
                 onValueChange = function() addon:RefreshAllNameplates() end
             },
