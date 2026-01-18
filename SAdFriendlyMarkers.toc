@@ -1,6 +1,6 @@
 ## Interface: 120000, 120001
 ## Title: SAdFriendlyMarkers
-## Author: Your Name
+## Author: Rôkk-Wyrmrest Accord
 ## Version: 1.0
 ## SavedVariables: SAdFriendlyMarkers_Settings_Global
 ## SavedVariablesPerCharacter: SAdFriendlyMarkers_Settings_Char
