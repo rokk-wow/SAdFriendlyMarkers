@@ -429,15 +429,17 @@ end
 
 Some WoW API calls cannot be made during combat (e.g., modifying secure frames, changing UI positions). SAdCore provides a combat queue system that automatically delays these actions until combat ends.
 
-### Using the combatSafe Table
+### Using the CombatSafe Table
 
-Define functions in `addon.combatSafe` to make them combat-safe. The `combatSafe` table is automatically initialized by SAdCore, so you can directly assign functions to it. SAdCore automatically wraps these functions to queue them during combat and execute them when combat ends.
+Define functions in `addon.CombatSafe` to make them combat-safe. You must initialize the `CombatSafe` table before adding functions to it. SAdCore automatically wraps these functions to queue them during combat and execute them when combat ends.
 
 ### Example: Frame Updates
 
 ```lua
--- No need to initialize addon.combatSafe, it's ready to use
-addon.combatSafe.updateHealthBar = function(self, health, maxHealth)
+-- Initialize the CombatSafe table
+addon.CombatSafe = addon.CombatSafe or {}
+
+addon.CombatSafe.updateHealthBar = function(self, health, maxHealth)
     local percentage = (health / maxHealth) * 100
     MyHealthBar:SetValue(percentage)
     MyHealthBar:Show()
@@ -449,7 +451,7 @@ function addon:OnUnitHealth(event, unitID)
     if unitID == "player" then
         local health = UnitHealth("player")
         local maxHealth = UnitHealthMax("player")
-        self.combatSafe:updateHealthBar(health, maxHealth)
+        self.CombatSafe:updateHealthBar(health, maxHealth)
     end
 end
 ```

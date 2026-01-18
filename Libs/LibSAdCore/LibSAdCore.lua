@@ -217,7 +217,7 @@ end
 --[[============================================================================
     SAdCore - Simple Addon Core
 ==============================================================================]]
-local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 3
+local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 4
 local SAdCore, oldminor = LibStub:NewLibrary(SADCORE_MAJOR, SADCORE_MINOR)
 if not SAdCore then
     return
@@ -390,7 +390,7 @@ do -- Initialization
         self.author = self.author or "SAdCore Framework"
         self:InitializeSavedVariables(savedVarsGlobal, savedVarsPerChar)
 
-        self.combatSafe = self.combatSafe or {}
+        self.CombatSafe = self.CombatSafe or {}
 
         if self.LoadConfig then
             self:LoadConfig()
@@ -2017,14 +2017,14 @@ do -- Combat Queue System
     function addon:WrapCombatSafeFunctions()
         callHook(self, "BeforeWrapCombatSafeFunctions")
 
-        if not self.combatSafe then
+        if not self.CombatSafe then
             callHook(self, "AfterWrapCombatSafeFunctions", true)
             return true
         end
 
-        for funcName, originalFunc in pairs(self.combatSafe) do
+        for funcName, originalFunc in pairs(self.CombatSafe) do
             if type(originalFunc) == "function" then
-                self.combatSafe[funcName] = function(self, ...)
+                self.CombatSafe[funcName] = function(self, ...)
                     local args = {...}
 
                     if InCombatLockdown() then
