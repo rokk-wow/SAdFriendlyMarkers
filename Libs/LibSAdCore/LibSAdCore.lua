@@ -217,7 +217,7 @@ end
 --[[============================================================================
     SAdCore - Simple Addon Core
 ==============================================================================]]
-local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 2
+local SADCORE_MAJOR, SADCORE_MINOR = "SAdCore-1", 3
 local SAdCore, oldminor = LibStub:NewLibrary(SADCORE_MAJOR, SADCORE_MINOR)
 if not SAdCore then
     return
@@ -303,7 +303,7 @@ do -- Initialization
         self.config = self.config or {}
         self.config.settings = self.config.settings or {}
         self.sadCore = self.sadCore or {}
-        self.sadCore.version = "1.1"
+        self.sadCore.version = SADCORE_MAJOR:match("%d+") .. "." .. SADCORE_MINOR
         self.apiVersion = select(4, GetBuildInfo())
 
         local clientLocale = GetLocale()
@@ -390,6 +390,8 @@ do -- Initialization
         self.author = self.author or "SAdCore Framework"
         self:InitializeSavedVariables(savedVarsGlobal, savedVarsPerChar)
 
+        self.combatSafe = self.combatSafe or {}
+
         if self.LoadConfig then
             self:LoadConfig()
         end
@@ -403,6 +405,9 @@ do -- Initialization
         if self.RegisterFunctions then
             self:RegisterFunctions()
         end
+
+        self:InitializeCombatQueue()
+        self:WrapCombatSafeFunctions()
 
         local returnValue = true
         callHook(self, "AfterInitialize", returnValue)
@@ -1985,6 +1990,125 @@ do -- Utility Functions
 
 end
 
+do -- Combat Queue System
+
+    function addon:InitializeCombatQueue()
+        callHook(self, "BeforeInitializeCombatQueue")
+
+        self.combatQueue = self.combatQueue or {}
+
+        if not self.combatQueueFrame then
+            self.combatQueueFrame = CreateFrame("Frame")
+            local addonInstance = self
+
+            self.combatQueueFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+            self.combatQueueFrame:SetScript("OnEvent", function(frame, event)
+                if event == "PLAYER_REGEN_ENABLED" then
+                    addonInstance:ProcessCombatQueue()
+                end
+            end)
+        end
+
+        local returnValue = true
+        callHook(self, "AfterInitializeCombatQueue", returnValue)
+        return returnValue
+    end
+
+    function addon:WrapCombatSafeFunctions()
+        callHook(self, "BeforeWrapCombatSafeFunctions")
+
+        if not self.combatSafe then
+            callHook(self, "AfterWrapCombatSafeFunctions", true)
+            return true
+        end
+
+        for funcName, originalFunc in pairs(self.combatSafe) do
+            if type(originalFunc) == "function" then
+                self.combatSafe[funcName] = function(self, ...)
+                    local args = {...}
+
+                    if InCombatLockdown() then
+                        table.insert(self.combatQueue, {
+                            func = originalFunc,
+                            args = args
+                        })
+                        self:debug("Action queued for after combat: " .. funcName)
+                        return false
+                    end
+
+                    local success, result = pcall(originalFunc, self, unpack(args))
+
+                    if success then
+                        return result
+                    else
+                        self:error(self:L("core_combatSafeFunctionError") .. " " .. funcName .. ": " .. tostring(result))
+                        return false
+                    end
+                end
+            end
+        end
+
+        local returnValue = true
+        callHook(self, "AfterWrapCombatSafeFunctions", returnValue)
+        return returnValue
+    end
+
+    function addon:ProcessCombatQueue()
+        callHook(self, "BeforeProcessCombatQueue")
+
+        if not self.combatQueue or #self.combatQueue == 0 then
+            callHook(self, "AfterProcessCombatQueue", true)
+            return true
+        end
+
+        local queueCount = #self.combatQueue
+        self:debug("Processing queued actions: " .. queueCount)
+
+        local processedCount = 0
+        local failedCount = 0
+
+        while #self.combatQueue > 0 do
+            local action = table.remove(self.combatQueue, 1)
+            local success, result = pcall(action.func, self, unpack(action.args))
+
+            if success then
+                processedCount = processedCount + 1
+            else
+                failedCount = failedCount + 1
+                self:error(self:L("core_queuedActionFailed") .. ": " .. tostring(result))
+            end
+        end
+
+        if processedCount > 0 then
+            self:debug("Processed actions: " .. processedCount)
+        end
+
+        if failedCount > 0 then
+            self:debug("Failed actions: " .. failedCount)
+        end
+
+        local returnValue = true
+        callHook(self, "AfterProcessCombatQueue", returnValue)
+        return returnValue
+    end
+
+    function addon:ClearCombatQueue()
+        callHook(self, "BeforeClearCombatQueue")
+
+        local queueCount = #self.combatQueue
+        self.combatQueue = {}
+
+        if queueCount > 0 then
+            self:debug("Cleared queued actions: " .. queueCount)
+        end
+
+        local returnValue = true
+        callHook(self, "AfterClearCombatQueue", returnValue)
+        return returnValue
+    end
+
+end
+
 do -- Localization
     SAdCore.prototype.locale = SAdCore.prototype.locale or {}
 
@@ -2020,7 +2144,9 @@ do -- Localization
         core_errorConfigHelp1 = "SavedVariables configuration error detected.",
         core_errorConfigHelp2 = "All variable names must contain the addon name to ensure uniqueness across all addons.",
         core_errorConfigExample = "Example configuration for addon",
-        core_cannotOpenInCombat = "Cannot open settings while in combat."
+        core_cannotOpenInCombat = "Cannot open settings while in combat.",
+        core_combatSafeFunctionError = "Combat safe function error",
+        core_queuedActionFailed = "Combat safe queued action failed"
     }
 
     -- Spanish
@@ -2056,7 +2182,9 @@ do -- Localization
         core_errorConfigHelp1 = "Se detectó un error de configuración de SavedVariables.",
         core_errorConfigHelp2 = "Todos los nombres de variables deben contener el nombre del addon para garantizar la unicidad entre todos los addons.",
         core_errorConfigExample = "Ejemplo de configuración para el addon",
-        core_cannotOpenInCombat = "No se puede abrir la configuración durante el combate."
+        core_cannotOpenInCombat = "No se puede abrir la configuración durante el combate.",
+        core_combatSafeFunctionError = "Error en función protegida contra combate",
+        core_queuedActionFailed = "Acción en cola falló"
     }
 
     SAdCore.prototype.locale.esMX = SAdCore.prototype.locale.esES
@@ -2094,7 +2222,9 @@ do -- Localization
         core_errorConfigHelp1 = "Erro de configuração de SavedVariables detectado.",
         core_errorConfigHelp2 = "Todos os nomes de variáveis devem conter o nome do addon para garantir exclusividade entre todos os addons.",
         core_errorConfigExample = "Exemplo de configuração para o addon",
-        core_cannotOpenInCombat = "Não é possível abrir as configurações durante o combate."
+        core_cannotOpenInCombat = "Não é possível abrir as configurações durante o combate.",
+        core_combatSafeFunctionError = "Erro na função protegida contra combate",
+        core_queuedActionFailed = "Ação enfileirada falhou"
     }
 
     -- French
