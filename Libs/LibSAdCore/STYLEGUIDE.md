@@ -60,22 +60,39 @@ function addon:FunctionName(params)
 end
 ```
 
+## Example: Correct Initialize Section
+
+```lua
+do -- Initialize
+
+    function addon:_Initialize(savedVarsGlobal, savedVarsPerChar)
+        callHook(self, "BeforeInitialize", savedVarsGlobal, savedVarsPerChar)
+        
+        -- Initialization logic here
+        
+        local returnValue = true
+        callHook(self, "AfterInitialize", returnValue)
+        return returnValue
+    end
+end
+```
+
 ## Localization Requirements
 
 ### All User-Facing Messages Must Use Localization
 
-All `info` and `error` messages MUST use localization strings via `self:L()`:
+All `Info` and `Error` messages MUST use localization strings via `self:L()`:
 
 **✅ Correct:**
 ```lua
-self:error(self:L("frameNotFound") .. ": " .. frameName)
-self:info(self:L("importSuccess"))
+self:Error(self:L("frameNotFound") .. ": " .. frameName)
+self:Info(self:L("importSuccess"))
 ```
 
 **❌ Incorrect:**
 ```lua
-self:error("Frame not found: " .. frameName)
-self:info("Import successful")
+self:Error("Frame not found: " .. frameName)
+self:Info("Import successful")
 ```
 
 This ensures the framework can be localized for different languages.
@@ -115,7 +132,7 @@ Code should be self-documenting. Comments should be rare and strategic.
 
 1. **Section Header Comments** - Large sections with `do` scopes:
    ```lua
-   do -- Initialization
+   do -- Initialize
        -- functions here
    end
    
@@ -190,7 +207,7 @@ end
 
 local success = ProcessData(data)
 if success then
-    self:info(self:L("operationSuccess"))
+    self:Info(self:L("operationSuccess"))
 end
 ```
 
@@ -208,7 +225,7 @@ end
 
 local failed = not ProcessData(data)
 if not failed then
-    self:info(self:L("operationSuccess"))
+    self:Info(self:L("operationSuccess"))
 end
 ```
 

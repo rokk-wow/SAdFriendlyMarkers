@@ -36,7 +36,7 @@ addon.vars.markers = {
     plunderNameplate = { atlas = "plunderstorm-nameplates-icon-2", rotation = 0, width = 64, height = 64 },
 }
 
-function addon:LoadConfig()
+function addon:Initialize()
     self.config.version = "1.0"
     self.author = "Rôkk-Wyrmrest Accord"
 
@@ -136,55 +136,56 @@ function addon:LoadConfig()
         controls = enableZoneControls
     }
 
-    addon:debug("Registering NAME_PLATE_UNIT_ADDED event")
-    addon:RegisterEvent("NAME_PLATE_UNIT_ADDED", function(event, unit)
-        addon:debug("NAME_PLATE_UNIT_ADDED fired for unit: " .. tostring(unit))
+   
+    self:Debug("Performing initial nameplate refresh")
+    self:RefreshAllNameplates()
+    self:Debug("Initialize complete")
+
+    -- Event registrations moved to end of Initialize
+    self:Debug("Registering NAME_PLATE_UNIT_ADDED event")
+    self:RegisterEvent("NAME_PLATE_UNIT_ADDED", function(event, unit)
+        self.Debug(self, "NAME_PLATE_UNIT_ADDED fired for unit: " .. tostring(unit))
         local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
         if nameplate and nameplate.UnitFrame then
-            addon:UpdateFriendlyMarker(nameplate, nameplate.UnitFrame)
+            self.UpdateFriendlyMarker(self, nameplate, nameplate.UnitFrame)
         end
     end)
     
-    addon:debug("Hooking CompactUnitFrame_UpdateName")
+    self:Debug("Hooking CompactUnitFrame_UpdateName")
     hooksecurefunc("CompactUnitFrame_UpdateName", function(frame)
         if frame:IsForbidden() then return end
         
         if frame.unit and string.find(frame.unit, "nameplate") then
-            addon:debug("CompactUnitFrame_UpdateName hook fired for: " .. tostring(frame.unit))
+            self.Debug(self, "CompactUnitFrame_UpdateName hook fired for: " .. tostring(frame.unit))
             local nameplate = frame:GetParent()
             if nameplate then
-                addon:UpdateFriendlyMarker(nameplate, frame)
+                self.UpdateFriendlyMarker(self, nameplate, frame)
             end
         end
     end)
 
     local initialNameplateSize = GetCVar("nameplateSize") or "1"
-    addon.vars.nameplateSizeOffset = tonumber(initialNameplateSize) * addon.vars.nameplateSizeOffsetMultiplier
-    addon:debug(string.format("Initial nameplate size offset: %s (from nameplateSize=%s)", tostring(addon.vars.nameplateSizeOffset), initialNameplateSize))
+    self.vars.nameplateSizeOffset = tonumber(initialNameplateSize) * self.vars.nameplateSizeOffsetMultiplier
+    self:Debug(string.format("Initial nameplate size offset: %s (from nameplateSize=%s)", tostring(self.vars.nameplateSizeOffset), initialNameplateSize))
 
-    addon:debug("Registering CVAR_UPDATE event for nameplate size changes")
+    self:Debug("Registering CVAR_UPDATE event for nameplate size changes")
     local nameplateUpdateTimer = nil
-    addon:RegisterEvent("CVAR_UPDATE", function(event, cvarName)
+    self:RegisterEvent("CVAR_UPDATE", function(event, cvarName)
         if cvarName == "nameplateSize" then
             local value = GetCVar(cvarName)
-            addon:debug(string.format("Nameplate size CVAR changed: %s = %s", cvarName, tostring(value)))
-            addon.vars.nameplateSizeOffset = tonumber(value) * addon.vars.nameplateSizeOffsetMultiplier
+            self.Debug(self, string.format("Nameplate size CVAR changed: %s = %s", cvarName, tostring(value)))
+            self.vars.nameplateSizeOffset = tonumber(value) * self.vars.nameplateSizeOffsetMultiplier
             
             if nameplateUpdateTimer then
                 nameplateUpdateTimer:Cancel()
             end
             
-            nameplateUpdateTimer = C_Timer.NewTimer(addon.vars.updateDelay, function()
-                addon:RefreshAllNameplates()
+            nameplateUpdateTimer = C_Timer.NewTimer(self.vars.updateDelay, function()
+                self.RefreshAllNameplates(self)
                 nameplateUpdateTimer = nil
             end)
         end
     end)
-   
-    addon:debug("Performing initial nameplate refresh")
-    addon:RefreshAllNameplates()
-    addon:debug("AfterInitialize complete")
-
 end
 
 function addon:OnZoneChange(currentZone)
@@ -199,14 +200,14 @@ function addon:ApplyFriendlyMarkersForZone(currentZone, forceUpdate)
     end
        
     if not self.settings.zones then
-        self:debug("settings.zones not initialized yet")
+        self:Debug("settings.zones not initialized yet")
         return
     end
     
     local controlName = "enabledIn" .. self.currentZone:sub(1,1):upper() .. self.currentZone:sub(2)
     local isEnabled = self.settings.zones[controlName]
     
-    self:debug(string.format("Friendly markers %s for zone: %s", isEnabled and "enabled" or "disabled", self.currentZone))
+    self:Debug(string.format("Friendly markers %s for zone: %s", isEnabled and "enabled" or "disabled", self.currentZone))
     
     if isEnabled then
         addon:RefreshAllNameplates()
@@ -289,43 +290,43 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
     end
     self.vars.nameplateUpdateTimes[nameplate] = currentTime
     
-    self:debug("UpdateFriendlyMarker called for unit: " .. tostring(unitFrame.unit))
+    self:Debug("UpdateFriendlyMarker called for unit: " .. tostring(unitFrame.unit))
     
     local unit = unitFrame.unit
     
     if not unit or UnitIsUnit(unit, "player") then
-        self:debug("Skipping: no unit or is player")
+        self:Debug("Skipping: no unit or is player")
         self:HideMarker(nameplate)
         return
     end
     
     if not UnitPlayerControlled(unit) or UnitIsEnemy("player", unit) then
-        self:debug("Skipping: not player-controlled or is enemy")
+        self:Debug("Skipping: not player-controlled or is enemy")
         self:HideMarker(nameplate)
         return
     end
     
     if not UnitIsPlayer(unit) then
-        self:debug("Skipping: not a player")
+        self:Debug("Skipping: not a player")
         self:HideMarker(nameplate)
         return
     end
     
     local _, class = UnitClass(unit)
     if not class then
-        self:debug("Skipping: no class found")
+        self:Debug("Skipping: no class found")
         self:HideMarker(nameplate)
         return
     end
     
     local classColor = RAID_CLASS_COLORS[class]
     if not classColor then
-        self:debug("Skipping: no class color for class: " .. tostring(class))
+        self:Debug("Skipping: no class color for class: " .. tostring(class))
         self:HideMarker(nameplate)
         return
     end
     
-    self:debug("Found friendly player: class=" .. tostring(class) .. " name=" .. tostring(UnitName(unit)))
+    self:Debug("Found friendly player: class=" .. tostring(class) .. " name=" .. tostring(UnitName(unit)))
     
     local currentNameplateSize = tonumber(GetCVar("nameplateSize")) or 1
     local nameplateSizeOffset = currentNameplateSize * addon.vars.nameplateSizeOffsetMultiplier
@@ -336,13 +337,13 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
     local markerWidthValue = self.settings.markerStyle.markerWidth
     local markerWidth = 1.0 + (markerWidthValue * 0.15)
     
-    self:debug(string.format("verticalOffset=%s (user=%s + default=%s + sizeOffset=%s, nameplateSize=%s)", 
+    self:Debug(string.format("verticalOffset=%s (user=%s + default=%s + sizeOffset=%s, nameplateSize=%s)", 
         tostring(verticalOffset), 
         tostring(self.settings.markerStyle.markerVerticalOffset),
         tostring(addon.vars.defaultVerticalOffset),
         tostring(nameplateSizeOffset),
         tostring(currentNameplateSize)))
-    self:debug("Settings: markerStyle=" .. tostring(markerStyle) .. " scale=" .. tostring(iconScale))
+    self:Debug("Settings: markerStyle=" .. tostring(markerStyle) .. " scale=" .. tostring(iconScale))
     
     if nameplate.FriendlyClassIcon then
         nameplate.FriendlyClassIcon:Hide()
@@ -352,7 +353,7 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
     end
     
     if markerStyle == "classIcon" then
-        self:debug("Creating/updating class icon")
+        self:Debug("Creating/updating class icon")
         local iconFrame = self:CreateClassIcon(nameplate)
         iconFrame.icon:SetTexture(self.vars.classIconPath)
         iconFrame.icon:SetTexCoord(unpack(CLASS_ICON_TCOORDS[class]))
@@ -366,13 +367,13 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
         iconFrame:ClearAllPoints()
         iconFrame:SetPoint("BOTTOM", nameplate, "BOTTOM", 0, verticalOffset)
         
-        self:debug("Showing icon frame")
+        self:Debug("Showing icon frame")
         iconFrame:Show()
 
     else
         local styleInfo = self.vars.markers[markerStyle]
         if styleInfo then
-            self:debug("Creating/updating arrow marker: " .. markerStyle)
+            self:Debug("Creating/updating arrow marker: " .. markerStyle)
             local width = styleInfo.width
             local height = styleInfo.height
             local isRotated90 = (styleInfo.rotation == math.pi / 2 or styleInfo.rotation == -math.pi / 2)
@@ -387,10 +388,10 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
             arrowFrame:ClearAllPoints()
             arrowFrame:SetPoint("BOTTOM", nameplate, "BOTTOM", 0, verticalOffset)
             
-            self:debug("Showing arrow frame")
+            self:Debug("Showing arrow frame")
             arrowFrame:Show()
         else
-            self:debug("Unknown marker style: " .. tostring(markerStyle))
+            self:Debug("Unknown marker style: " .. tostring(markerStyle))
         end
     end
 end
@@ -405,8 +406,8 @@ function addon:HideMarker(nameplate)
 end
 
 function addon:RefreshAllNameplates()
-    self:debug("RefreshAllNameplates called")
-    self:debug("addon.settings.markerStyle.markerTexture: " .. tostring(self.settings.markerStyle and self.settings.markerStyle.markerTexture or "not set"))
+    self:Debug("RefreshAllNameplates called")
+    self:Debug("addon.settings.markerStyle.markerTexture: " .. tostring(self.settings.markerStyle and self.settings.markerStyle.markerTexture or "not set"))
     local nameplates = C_NamePlate.GetNamePlates()
     for _, nameplate in ipairs(nameplates) do
         if nameplate.UnitFrame then
