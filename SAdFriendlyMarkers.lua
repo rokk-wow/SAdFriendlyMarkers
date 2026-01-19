@@ -37,7 +37,7 @@ addon.vars.markers = {
 }
 
 function addon:Initialize()
-    self.config.version = "1.0"
+    self.sadCore.version = "1.0"
     self.author = "Rôkk-Wyrmrest Accord"
 
     local markerOptions = {}
@@ -65,7 +65,7 @@ function addon:Initialize()
         })
     end
 
-    self.config.settings.markerStyle = {
+    self.sadCore.panels.markerStyle = {
         title = "markerStyle",
         controls = {{
                 type = "dropdown",
@@ -131,7 +131,7 @@ function addon:Initialize()
         end
     end
 
-    self.config.settings.zones = {
+    self.sadCore.panels.zones = {
         title = "enableInZoneTitle",
         controls = enableZoneControls
     }
