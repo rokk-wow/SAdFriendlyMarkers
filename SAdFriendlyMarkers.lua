@@ -199,13 +199,13 @@ function addon:ApplyFriendlyMarkersForZone(currentZone, forceUpdate)
         end
     end
        
-    if not self.settings.zones then
-        self:Debug("settings.zones not initialized yet")
+    if not self.savedVars.zones then
+        self:Debug("savedVars.zones not initialized yet")
         return
     end
     
     local controlName = "enabledIn" .. self.currentZone:sub(1,1):upper() .. self.currentZone:sub(2)
-    local isEnabled = self.settings.zones[controlName]
+    local isEnabled = self.savedVars.zones[controlName]
     
     self:Debug(string.format("Friendly markers %s for zone: %s", isEnabled and "enabled" or "disabled", self.currentZone))
     
@@ -331,15 +331,15 @@ function addon:UpdateFriendlyMarker(nameplate, unitFrame)
     local currentNameplateSize = tonumber(GetCVar("nameplateSize")) or 1
     local nameplateSizeOffset = currentNameplateSize * addon.vars.nameplateSizeOffsetMultiplier
     
-    local iconScale = self.settings.markerStyle.markerSize / 100
-    local markerStyle = self.settings.markerStyle.markerTexture
-    local verticalOffset = self.settings.markerStyle.markerVerticalOffset + addon.vars.defaultVerticalOffset + nameplateSizeOffset
-    local markerWidthValue = self.settings.markerStyle.markerWidth
+    local iconScale = self.savedVars.markerStyle.markerSize / 100
+    local markerStyle = self.savedVars.markerStyle.markerTexture
+    local verticalOffset = self.savedVars.markerStyle.markerVerticalOffset + addon.vars.defaultVerticalOffset + nameplateSizeOffset
+    local markerWidthValue = self.savedVars.markerStyle.markerWidth
     local markerWidth = 1.0 + (markerWidthValue * 0.15)
     
     self:Debug(string.format("verticalOffset=%s (user=%s + default=%s + sizeOffset=%s, nameplateSize=%s)", 
         tostring(verticalOffset), 
-        tostring(self.settings.markerStyle.markerVerticalOffset),
+        tostring(self.savedVars.markerStyle.markerVerticalOffset),
         tostring(addon.vars.defaultVerticalOffset),
         tostring(nameplateSizeOffset),
         tostring(currentNameplateSize)))
@@ -407,7 +407,7 @@ end
 
 function addon:RefreshAllNameplates()
     self:Debug("RefreshAllNameplates called")
-    self:Debug("addon.settings.markerStyle.markerTexture: " .. tostring(self.settings.markerStyle and self.settings.markerStyle.markerTexture or "not set"))
+    self:Debug("addon.savedVars.markerStyle.markerTexture: " .. tostring(self.savedVars.markerStyle and self.savedVars.markerStyle.markerTexture or "not set"))
     local nameplates = C_NamePlate.GetNamePlates()
     for _, nameplate in ipairs(nameplates) do
         if nameplate.UnitFrame then
