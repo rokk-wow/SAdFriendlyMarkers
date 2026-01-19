@@ -2,9 +2,9 @@ local addonName = ...
 local SAdCore = LibStub("SAdCore-1")
 local addon = SAdCore:GetAddon(addonName)
 
-addon.savedVarsGlobalName = "SAdFriendlyMarkers_Settings_Global"
-addon.savedVarsPerCharName = "SAdFriendlyMarkers_Settings_Char"
-addon.compartmentFuncName = "SAdFriendlyMarkers_Compartment_Func"
+addon.sadCore.savedVarsGlobalName = "SAdFriendlyMarkers_Settings_Global"
+addon.sadCore.savedVarsPerCharName = "SAdFriendlyMarkers_Settings_Char"
+addon.sadCore.compartmentFuncName = "SAdFriendlyMarkers_Compartment_Func"
 
 addon.vars = {}
 addon.vars.iconSize = 40
