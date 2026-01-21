@@ -135,13 +135,10 @@ function addon:Initialize()
         title = "enableInZoneTitle",
         controls = enableZoneControls
     }
-
    
     self:Debug("Performing initial nameplate refresh")
-    self:RefreshAllNameplates()
+    self:RefreshAllNameplates()    
     self:Debug("Initialize complete")
-
-    -- Event registrations moved to end of Initialize
     self:Debug("Registering NAME_PLATE_UNIT_ADDED event")
     self:RegisterEvent("NAME_PLATE_UNIT_ADDED", function(event, unit)
         self.Debug(self, "NAME_PLATE_UNIT_ADDED fired for unit: " .. tostring(unit))
