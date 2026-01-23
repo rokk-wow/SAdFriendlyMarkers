@@ -35,6 +35,12 @@ addon.vars.markers = {
     plunderZone = { atlas = "plunderstorm-map-zoneYellow-hover", rotation = 0, width = 64, height = 64 },
     plunderNameplate = { atlas = "plunderstorm-nameplates-icon-2", rotation = 0, width = 64, height = 64 },
 }
+addon.vars.arenaMarkers = {
+    arena1 = { atlas = "services-number-1", rotation = 0, width = 71, height = 79 },
+    arena2 = { atlas = "services-number-2", rotation = 0, width = 71, height = 79 },
+    arena3 = { atlas = "services-number-3", rotation = 0, width = 71, height = 79 },
+}
+
 
 function addon:Initialize()
     self.sadCore.version = "1.0"
